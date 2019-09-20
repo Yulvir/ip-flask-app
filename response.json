@@ -1,0 +1,93 @@
+{
+  "city": {
+    "geoname_id": 3117735,
+    "names": {
+      "de": "Madrid",
+      "en": "Madrid",
+      "es": "Madrid",
+      "fr": "Madrid",
+      "ja": "\u30de\u30c9\u30ea\u30fc\u30c9\u5e02",
+      "pt-BR": "Madrid",
+      "ru": "\u041c\u0430\u0434\u0440\u0438\u0434",
+      "zh-CN": "\u9a6c\u5fb7\u91cc"
+    }
+  },
+  "continent": {
+    "code": "EU",
+    "geoname_id": 6255148,
+    "names": {
+      "de": "Europa",
+      "en": "Europe",
+      "es": "Europa",
+      "fr": "Europe",
+      "ja": "\u30e8\u30fc\u30ed\u30c3\u30d1",
+      "pt-BR": "Europa",
+      "ru": "\u0415\u0432\u0440\u043e\u043f\u0430",
+      "zh-CN": "\u6b27\u6d32"
+    }
+  },
+  "country": {
+    "geoname_id": 2510769,
+    "is_in_european_union": true,
+    "iso_code": "ES",
+    "names": {
+      "de": "Spanien",
+      "en": "Spain",
+      "es": "Espa\u00f1a",
+      "fr": "Espagne",
+      "ja": "\u30b9\u30da\u30a4\u30f3",
+      "pt-BR": "Espanha",
+      "ru": "\u0418\u0441\u043f\u0430\u043d\u0438\u044f",
+      "zh-CN": "\u897f\u73ed\u7259"
+    }
+  },
+  "location": {
+    "accuracy_radius": 200,
+    "latitude": 40.4165,
+    "longitude": -3.7026,
+    "time_zone": "Europe/Madrid"
+  },
+  "postal": {
+    "code": "28008"
+  },
+  "registered_country": {
+    "geoname_id": 2510769,
+    "is_in_european_union": true,
+    "iso_code": "ES",
+    "names": {
+      "de": "Spanien",
+      "en": "Spain",
+      "es": "Espa\u00f1a",
+      "fr": "Espagne",
+      "ja": "\u30b9\u30da\u30a4\u30f3",
+      "pt-BR": "Espanha",
+      "ru": "\u0418\u0441\u043f\u0430\u043d\u0438\u044f",
+      "zh-CN": "\u897f\u73ed\u7259"
+    }
+  },
+  "subdivisions": [
+    {
+      "geoname_id": 3117732,
+      "iso_code": "MD",
+      "names": {
+        "de": "Madrid",
+        "en": "Madrid",
+        "es": "Madrid",
+        "fr": "Communaut\u00e9 de Madrid",
+        "ja": "\u30b3\u30e0\u30cb\u30c0\u30fb\u30c7\u30fb\u30de\u30c9\u30ea\u30c3\u30c9",
+        "ru": "\u041e\u0431\u043b\u0430\u0441\u0442\u044c \u041c\u0430\u0434\u0440\u0438\u0434"
+      }
+    },
+    {
+      "geoname_id": 6355233,
+      "iso_code": "M",
+      "names": {
+        "de": "Provinz Madrid",
+        "en": "Madrid",
+        "es": "Madrid",
+        "fr": "Province de Madrid",
+        "ja": "\u30de\u30c9\u30ea\u30c3\u30c9"
+      }
+    }
+  ]
+}
