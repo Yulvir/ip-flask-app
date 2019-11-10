@@ -11,13 +11,14 @@ CORS(app)
 def ip_geolocate():
     ip = request.args.get('ip')
     reader = geolite2.reader()
+    match = []
     try:
         match = reader.get(ip)
     except ValueError as e:
         print(e)
-    print('My IP info:', match["country"])
+    print('My IP info:', match)
     return match
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True, host='0.0.0.0')
