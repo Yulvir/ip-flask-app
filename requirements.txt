@@ -8,3 +8,6 @@ python-geoip-geolite2==2015.303
 Werkzeug==0.16.0
 maxminddb-geolite2
 flask-cors
+reverse_geocoder
+geopy
+timezonefinder
