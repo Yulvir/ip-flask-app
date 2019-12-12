@@ -4,7 +4,7 @@ from flask import Response
 from flask import request
 from geopy.geocoders import Nominatim
 from timezonefinder import TimezoneFinder
-
+from constants import continent_mapping
 from geolite2 import geolite2
 app = Flask(__name__)
 
@@ -26,7 +26,7 @@ def ip_geolocate():
 def location_info():
     location = request.get_json()['location']
     location_str = f"{str(location['lat'])}, {str(location['lon'])}"
-    geolocator = Nominatim(user_agent="location_dict")
+    geolocator = Nominatim(user_agent="location_dict", timeout=10)
     output = geolocator.reverse(location_str)
 
     tf = TimezoneFinder(in_memory=True)
@@ -35,8 +35,12 @@ def location_info():
     location_info['time_zone'] = time_zone
     print(location_info)
 
+    country_code = location_info["country_code"]
+
+    location_info['continent'] = continent_mapping[country_code.upper()]
+
     return dict(location_info=location_info)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5000)
