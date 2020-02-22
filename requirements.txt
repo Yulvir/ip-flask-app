@@ -11,3 +11,4 @@ flask-cors
 reverse_geocoder
 geopy
 timezonefinder
+pydnsbl-0.6.3
