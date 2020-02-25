@@ -13,7 +13,6 @@ from pysummarization.tokenizabledoc.simple_tokenizer import SimpleTokenizer
 from pysummarization.abstractabledoc.top_n_rank_abstractor import TopNRankAbstractor
 from summarize import summarize
 app = Flask(__name__)
-from pydnsbl import DNSBLChecker
 from flask import abort, jsonify
 
 import nltk
@@ -40,6 +39,7 @@ ns = api.namespace('/', description='Geolocate things')
 parser = reqparse.RequestParser()
 parser.add_argument('ip', type=str, help='Ip Query')
 
+
 @ns.route('/ip_info') #  Create a URL route to this resource
 @ns.expect(parser)
 class Geolocate(Resource): #  Create a RESTful resource
@@ -62,26 +62,6 @@ class Geolocate(Resource): #  Create a RESTful resource
 
         return dict(match=complete_match(match))
 
-
-@ns.route('/ip_blacklist')                   #  Create a URL route to this resource
-@ns.expect(parser)
-class CheckBlackList(Resource):            #  Create a RESTful resource
-
-    @api.response(200, 'Blacklist Information about Ip\'s')
-    def get(self):
-        args = parser.parse_args()
-
-        ip = args['ip']
-
-        match = []
-        checker = DNSBLChecker()
-        result: DNSBLChecker = checker.check_ip(ip)
-
-        obj = {}
-        obj["detected_by"] = result.detected_by
-        obj["blacklisted"] = result.blacklisted
-        print('My IP info:', match)
-        return dict(match=obj)
 
 @ns.route('/location_info')
 class LocationInfo(Resource):
