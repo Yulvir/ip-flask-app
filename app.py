@@ -20,6 +20,13 @@ import json
 app = Flask(__name__)
 from flask import abort, jsonify
 import bjoern
+import datetime
+
+import time
+import atexit
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
 # Get the first 5 hits for "google 1.9.1 python" in Google Pakistan
 from googlesearch import search
 from urllib.parse import urlencode, urlparse, parse_qs
@@ -55,7 +62,6 @@ parser.add_argument('ip', type=str, help='Ip Query')
 @ns.route('/ip_info') #  Create a URL route to this resource
 @ns.expect(parser)
 class Geolocate(Resource): #  Create a RESTful resource
-
     @api.response(200, 'Location Information about Ip\'s')
     def get(self):
         args = parser.parse_args()
@@ -143,6 +149,22 @@ def get_meta(url):
     return meta_list
 
 
+def crawl(**kwargs):
+    results = []
+
+    for rank, url in enumerate(search(kwargs["phrase"], tld='com', lang='es', stop=5)):
+        results.append(dict(date=datetime.datetime.utcnow().strftime("%Y%m%dT%H:%M:%S"), n_important=str(rank), meta_urls=get_meta(url), url=url))
+
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = client["newsdb"]
+    customers = db["news"]
+
+    x = customers.insert_many(results)
+    # print list of the _id values of the inserted documents:
+    print(x.inserted_ids)
+    # Dump loaded BSON to valid JSON string and reload it as dict
+    page_sanitized = json.loads(json_util.dumps(results))
+    return page_sanitized
 
 
 @ns.route('/crawler')
@@ -150,21 +172,7 @@ class Crawler(Resource):
 
     @api.response(200, 'catches file for internet speed measure')
     def post(self):
-
-        results = []
-        for rank, url in enumerate(search(request.get_json()["phrase"], tld='com.pk', lang='es', stop=5)):
-            results.append(dict(n_important=str(rank), meta_urls=get_meta(url), url=url))
-
-        client = pymongo.MongoClient("mongodb://localhost:27017/")
-        db = client["newsdb"]
-        customers = db["news"]
-
-        x = customers.insert_many(results)
-        # print list of the _id values of the inserted documents:
-        print(x.inserted_ids)
-        # Dump loaded BSON to valid JSON string and reload it as dict
-        page_sanitized = json.loads(json_util.dumps(results))
-        return page_sanitized
+        return crawl(kwargs=request.get_json())
 
 @ns.route('/news')
 class News(Resource):
@@ -176,7 +184,7 @@ class News(Resource):
         db = client["newsdb"]
         customers = db["news"]
 
-        x = customers.find().sort([('_id', pymongo.DESCENDING )]).limit(3)
+        x = customers.find().sort([('_id', pymongo.DESCENDING )]).limit(100)
         results = [json.loads(json_util.dumps(elem)) for elem in x]
 
         # print list of the _id values of the inserted documents:
@@ -219,4 +227,14 @@ def handle_invalid_usage(error):
 
 
 if __name__ == '__main__':
+    scheduler = BackgroundScheduler()
+    phrase = dict(phrase="Articles about Ip or VPN ")
+    scheduler.add_job(crawl, kwargs=phrase, trigger="interval", seconds=3600)
+    scheduler.start()
+    atexit.register(lambda: scheduler.shutdown())
+
     bjoern.run(app, host='0.0.0.0', port=5000)
+
+
+    # Shut down the scheduler when exiting the app
+

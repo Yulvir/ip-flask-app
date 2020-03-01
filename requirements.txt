@@ -20,3 +20,4 @@ pymongo
 bs4
 bjoern
 lxml
+apscheduler
