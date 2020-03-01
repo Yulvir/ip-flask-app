@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 import pymongo  # package for working with MongoDB
 from bson import json_util #somewhere
 import json
+import os
 app = Flask(__name__)
 from flask import abort, jsonify
 import bjoern
@@ -52,9 +53,7 @@ def complete_match(match):
 
 api = Api(app)
 CORS(app)
-
 ns = api.namespace('/', description='Geolocate things')
-
 parser = reqparse.RequestParser()
 parser.add_argument('ip', type=str, help='Ip Query')
 
@@ -113,13 +112,7 @@ class LocationInfo(Resource):
     @api.response(200, 'catches file for internet speed measure')
     def post(self):
         '''Information from latitudes and longitudes '''
-
         return "Done!!!"
-
-
-
-
-
 
 
 def strim_for_mongo(name):
@@ -155,7 +148,11 @@ def crawl(**kwargs):
     for rank, url in enumerate(search(kwargs["phrase"], tld='com', lang='es', stop=5)):
         results.append(dict(date=datetime.datetime.utcnow().strftime("%Y%m%dT%H:%M:%S"), n_important=str(rank), meta_urls=get_meta(url), url=url))
 
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    conn_string = "mongodb://localhost:27017/"
+    if os.getenv("MONGO_IP"):
+        conn_string = "mongodb://{}:27017/".format(os.getenv("MONGO_IP"))
+
+    client = pymongo.MongoClient(conn_string)
     db = client["newsdb"]
     customers = db["news"]
 
