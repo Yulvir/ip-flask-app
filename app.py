@@ -12,8 +12,20 @@ from pysummarization.nlpbase.auto_abstractor import AutoAbstractor
 from pysummarization.tokenizabledoc.simple_tokenizer import SimpleTokenizer
 from pysummarization.abstractabledoc.top_n_rank_abstractor import TopNRankAbstractor
 from summarize import summarize
+import requests
+from bs4 import BeautifulSoup
+import pymongo  # package for working with MongoDB
+from bson import json_util #somewhere
+import json
 app = Flask(__name__)
 from flask import abort, jsonify
+import bjoern
+# Get the first 5 hits for "google 1.9.1 python" in Google Pakistan
+from googlesearch import search
+from urllib.parse import urlencode, urlparse, parse_qs
+
+from lxml.html import fromstring
+from requests import get
 
 import nltk
 nltk.download('stopwords')
@@ -98,6 +110,80 @@ class LocationInfo(Resource):
 
         return "Done!!!"
 
+
+
+
+
+
+
+def strim_for_mongo(name):
+    return name.replace('.', '_').replace(':', '_').replace('-', '_')
+
+
+def detect_names(name):
+
+    list_keys = ["description", "author", "title", "article", "date", "image"]
+    if any([l in name  for l in list_keys]):
+        return True
+    else:
+        return False
+def get_meta(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text)
+
+    metas = soup.find_all('meta')
+    meta_list = []
+    for meta in metas:
+        meta_attrs = meta.attrs
+        if "name" in meta_attrs and "content" in meta_attrs:
+                if detect_names(meta_attrs["name"]):
+                    meta_list.append({strim_for_mongo(meta_attrs["name"]): meta_attrs["content"]})
+
+
+    return meta_list
+
+
+
+
+@ns.route('/crawler')
+class Crawler(Resource):
+
+    @api.response(200, 'catches file for internet speed measure')
+    def post(self):
+
+        results = []
+        for rank, url in enumerate(search(request.get_json()["phrase"], tld='com.pk', lang='es', stop=5)):
+            results.append(dict(n_important=str(rank), meta_urls=get_meta(url), url=url))
+
+        client = pymongo.MongoClient("mongodb://localhost:27017/")
+        db = client["newsdb"]
+        customers = db["news"]
+
+        x = customers.insert_many(results)
+        # print list of the _id values of the inserted documents:
+        print(x.inserted_ids)
+        # Dump loaded BSON to valid JSON string and reload it as dict
+        page_sanitized = json.loads(json_util.dumps(results))
+        return page_sanitized
+
+@ns.route('/news')
+class News(Resource):
+
+    @api.response(200, 'Get News from MongoDB')
+    def get(self):
+
+        client = pymongo.MongoClient("mongodb://localhost:27017/")
+        db = client["newsdb"]
+        customers = db["news"]
+
+        x = customers.find().sort([('_id', pymongo.DESCENDING )]).limit(3)
+        results = [json.loads(json_util.dumps(elem)) for elem in x]
+
+        # print list of the _id values of the inserted documents:
+
+        # Dump loaded BSON to valid JSON string and reload it as dict
+        return results
+
 @ns.route('/summarize')
 class Summarize(Resource):
 
@@ -133,4 +219,4 @@ def handle_invalid_usage(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    bjoern.run(app, host='0.0.0.0', port=5000)

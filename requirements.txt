@@ -1,3 +1,4 @@
+nltk
 networkx
 distance
 Click==7.0
@@ -14,3 +15,8 @@ reverse_geocoder
 geopy
 timezonefinder
 pysummarization
+google
+pymongo
+bs4
+bjoern
+lxml
