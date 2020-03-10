@@ -22,9 +22,11 @@ app = Flask(__name__)
 from flask import abort, jsonify
 import bjoern
 import datetime
-
+from config import conn_string
 import time
 import atexit
+
+
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -145,12 +147,10 @@ def get_meta(url):
 def crawl(**kwargs):
     results = []
 
-    for rank, url in enumerate(search(kwargs["phrase"], tld='com', lang='es', stop=5)):
+    print("kwargs {}".format(str(kwargs)))
+    for rank, url in enumerate(search(kwargs["kwargs"]["phrase"], tld='com', lang='es', stop=5)):
         results.append(dict(date=datetime.datetime.utcnow().strftime("%Y%m%dT%H:%M:%S"), n_important=str(rank), meta_urls=get_meta(url), url=url))
 
-    conn_string = "mongodb://localhost:27017/"
-    if os.getenv("MONGO_IP"):
-        conn_string = "mongodb://{}:27017/".format(os.getenv("MONGO_IP"))
 
     client = pymongo.MongoClient(conn_string)
     db = client["newsdb"]
@@ -169,15 +169,18 @@ class Crawler(Resource):
 
     @api.response(200, 'catches file for internet speed measure')
     def post(self):
-        return crawl(kwargs=request.get_json())
+        phrase = dict(phrase=request.get_json()["phrase"])
+        return crawl(kwargs=phrase)
 
 @ns.route('/news')
 class News(Resource):
 
     @api.response(200, 'Get News from MongoDB')
     def get(self):
+        app.logger.debug(conn_string)
+        app.logger.info("Connection String {}".format(conn_string))
 
-        client = pymongo.MongoClient("mongodb://localhost:27017/")
+        client = pymongo.MongoClient(conn_string)
         db = client["newsdb"]
         customers = db["news"]
 
@@ -225,8 +228,8 @@ def handle_invalid_usage(error):
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
-    phrase = dict(phrase="Articles about Ip or VPN ")
-    scheduler.add_job(crawl, kwargs=phrase, trigger="interval", seconds=3600)
+    phrase = dict(kwargs={"phrase": "Articles about Ip or VPN"})
+    scheduler.add_job(crawl, kwargs=phrase, trigger="interval", seconds=60)
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
 
